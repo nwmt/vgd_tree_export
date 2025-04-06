@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экспорт древа VGD.ru</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "@material/web/": "https://esm.run/@material/web/"
+      }
+    }
+    </script>
+
+    <script type="module">
+      import '@material/web/all.js';
+      import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+      document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+    </script>
+
+    <script src="viz-standalone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body class="dark-mode">
+    <div class="main-container">
+        <header class="app-header">
+            <h1 class="md-typescale-display-small app-title">Экспорт древа VGD.ru</h1>
+            <div class="theme-toggle">
+                 <span class="material-symbols-outlined">light_mode</span>
+                 <md-switch id="themeSwitch"></md-switch>
+                 <span class="material-symbols-outlined">dark_mode</span>
+            </div>
+        </header>
+
+        <div class="step-section">
+            <h2 class="step-title md-typescale-title-large">Укажите ссылку на древо</h2>
+            <md-outlined-text-field
+                label="Ссылка на древо VGD"
+                type="url"
+                id="vgdUrl"
+                placeholder="https://vgd.ru/tree/?n=12345"
+                required>
+                 <md-icon slot="leading-icon">link</md-icon>
+            </md-outlined-text-field>
+             <div class="button-group" style="justify-content: flex-start; margin-top: 16px;">
+                 <md-filled-button id="processUrlBtn">
+                    Сформировать ссылку на данные
+                    <md-icon slot="icon">arrow_forward</md-icon>
+                 </md-filled-button>
+            </div>
+        </div>
+
+        <div id="dataSection" class="step-section hidden">
+             <h2 class="step-title md-typescale-title-large">Скопируйте и вставьте данные</h2>
+             <p class="md-typescale-body-medium instruction-text">
+                Перейдите по ссылке ниже (откроется в новой вкладке). На открывшейся странице выделите весь текст (обычно <kbd>Ctrl+A</kbd> или <kbd>Cmd+A</kbd>) и скопируйте его (<kbd>Ctrl+C</kbd> или <kbd>Cmd+C</kbd>).
+            </p>
+             <p class="md-typescale-body-medium data-link-wrapper">
+                Ссылка: <a id="dataUrlLink" href="#" target="_blank" class="data-link"></a>
+            </p>
+            <md-outlined-text-field
+                type="textarea"
+                label="Вставленные данные древа"
+                id="treeData"
+                rows="12"
+                placeholder="Вставьте сюда данные, начинающиеся с O|...">
+            </md-outlined-text-field>
+        </div>
+
+        <div class="step-section">
+             <h2 class="step-title md-typescale-title-large">Настройки и генерация</h2>
+             <div class="checkbox-wrapper">
+                <md-checkbox id="enableRankingCheckbox" checked touch-target="wrapper"></md-checkbox>
+                <label for="enableRankingCheckbox" class="md-typescale-label-large checkbox-label">
+                    Расположить узлы по годам рождения (раньше = выше)
+                </label>
+            </div>
+            <div class="button-group" style="justify-content: center;">
+                 <md-filled-button id="generateBtn" disabled>
+                    Сгенерировать граф
+                    <md-icon slot="icon">auto_awesome</md-icon>
+                 </md-filled-button>
+            </div>
+        </div>
+
+        <div id="loader" class="loader"></div>
+
+        <div id="outputSection" class="step-section hidden">
+            <h2 class="step-title md-typescale-title-large">Результат</h2>
+             <div id="errorContainer" class="error-box"></div> <div class="graph-controls">
+                 <md-icon-button id="zoomInBtn" aria-label="Приблизить">
+                     <md-icon>zoom_in</md-icon>
+                 </md-icon-button>
+                 <md-icon-button id="zoomOutBtn" aria-label="Отдалить">
+                     <md-icon>zoom_out</md-icon>
+                 </md-icon-button>
+                 <md-icon-button id="resetZoomBtn" aria-label="Сбросить масштаб">
+                     <md-icon>center_focus_strong</md-icon>
+                 </md-icon-button>
+                 <md-icon-button id="fullscreenBtn" aria-label="На весь экран">
+                     <md-icon>fullscreen</md-icon>
+                 </md-icon-button>
+             </div>
+            <div id="graphContainerWrapper">
+                 <div id="graphContainer">
+                     <span class="placeholder-text md-typescale-body-medium">Граф появится здесь...</span>
+                 </div>
+            </div>
+            <div class="download-buttons">
+                <md-outlined-button id="downloadSvgBtn" disabled>
+                    <md-icon slot="icon">image</md-icon>
+                    Скачать SVG
+                </md-outlined-button>
+                 <md-outlined-button id="downloadPngBtn" disabled>
+                    <md-icon slot="icon">photo_camera</md-icon>
+                    Скачать PNG
+                </md-outlined-button>
+                 <md-text-button id="downloadJsonBtn" disabled>
+                    <md-icon slot="icon">data_object</md-icon>
+                    Скачать JSON
+                </md-text-button>
+                <md-text-button id="downloadDotBtn" disabled>
+                     <md-icon slot="icon">description</md-icon>
+                    Скачать DOT
+                </md-text-button>
+            </div>
+        </div>
+        <canvas id="pngCanvas" style="display: none;"></canvas>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
